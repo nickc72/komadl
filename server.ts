@@ -356,7 +356,52 @@ function buildSeededState(): PersistedState {
   const tidalTotal = tidalPages.reduce((acc, p) => acc + p.bytes, 0);
 
   const chapters: MangaChapter[] = [
-    {\n      id: 'ch-iron-rail-014',\n      seriesId: 'iron-rail-nocturne',\n      seriesTitle: 'Iron Rail Nocturne',\n      chapterNumber: 14,\n      chapterTitle: 'Viaduct Crossing at 02:40',\n      extractor: 'mangadex',\n      sourceUrl: 'https://mangadex.org/chapter/8f3a19b0-1400-4d1c-9b2a-ironrail0014',\n      directoryPath: `./downloads/${ironDirRel}`,\n      downloadedAt: '2026-11-11T21:14:00.000Z',\n      pageCount: ironPages.length,\n      totalBytes: ironTotal,\n      readPage: 2,\n      pages: ironPages,\n    },\n    {\n      id: 'ch-glass-conservatory-008',\n      seriesId: 'the-glass-conservatory',\n      seriesTitle: 'The Glass Conservatory',\n      chapterNumber: 8,\n      chapterTitle: 'Fern Gallery Ironwork',\n      extractor: 'mangadex',\n      sourceUrl: 'https://mangadex.org/chapter/4c9e02d1-0800-4a8b-8f11-glasscon0008',\n      directoryPath: `./downloads/${glassDirRel}`,\n      downloadedAt: '2026-11-10T18:42:00.000Z',\n      pageCount: glassPages.length,\n      totalBytes: glassTotal,\n      readPage: 0,\n      pages: glassPages,\n    },\n    {\n      id: 'ch-tidal-cartographer-022',\n      seriesId: 'tidal-cartographer',\n      seriesTitle: 'Tidal Cartographer',\n      chapterNumber: 22,\n      chapterTitle: 'Basalt Stacks & Astrolabe',\n      extractor: 'danbooru',\n      sourceUrl: 'https://danbooru.donmai.us/pools/22048',\n      directoryPath: `./downloads/${tidalDirRel}`,\n      downloadedAt: '2026-11-09T11:05:00.000Z',\n      pageCount: tidalPages.length,\n      totalBytes: tidalTotal,\n      readPage: 4,\n      pages: tidalPages,\n    },\n  ];
+    {
+      id: 'ch-iron-rail-014',
+      seriesId: 'iron-rail-nocturne',
+      seriesTitle: 'Iron Rail Nocturne',
+      chapterNumber: 14,
+      chapterTitle: 'Viaduct Crossing at 02:40',
+      extractor: 'mangadex',
+      sourceUrl: 'https://mangadex.org/chapter/8f3a19b0-1400-4d1c-9b2a-ironrail0014',
+      directoryPath: `./downloads/${ironDirRel}`,
+      downloadedAt: '2026-11-11T21:14:00.000Z',
+      pageCount: ironPages.length,
+      totalBytes: ironTotal,
+      readPage: 2,
+      pages: ironPages,
+    },
+    {
+      id: 'ch-glass-conservatory-008',
+      seriesId: 'the-glass-conservatory',
+      seriesTitle: 'The Glass Conservatory',
+      chapterNumber: 8,
+      chapterTitle: 'Fern Gallery Ironwork',
+      extractor: 'mangadex',
+      sourceUrl: 'https://mangadex.org/chapter/4c9e02d1-0800-4a8b-8f11-glasscon0008',
+      directoryPath: `./downloads/${glassDirRel}`,
+      downloadedAt: '2026-11-10T18:42:00.000Z',
+      pageCount: glassPages.length,
+      totalBytes: glassTotal,
+      readPage: 0,
+      pages: glassPages,
+    },
+    {
+      id: 'ch-tidal-cartographer-022',
+      seriesId: 'tidal-cartographer',
+      seriesTitle: 'Tidal Cartographer',
+      chapterNumber: 22,
+      chapterTitle: 'Basalt Stacks & Astrolabe',
+      extractor: 'danbooru',
+      sourceUrl: 'https://danbooru.donmai.us/pools/22048',
+      directoryPath: `./downloads/${tidalDirRel}`,
+      downloadedAt: '2026-11-09T11:05:00.000Z',
+      pageCount: tidalPages.length,
+      totalBytes: tidalTotal,
+      readPage: 4,
+      pages: tidalPages,
+    },
+  ];
 
   const jobs: DownloadJob[] = [
     {
