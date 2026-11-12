@@ -50,6 +50,38 @@ html {
   font-synthesis-weight: none;
   background-color: var(--color-background);
   color: var(--color-foreground);
+  color-scheme: dark;
+}
+
+/* Custom sleek dark scrollbars for the application */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.33 0.014 65);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.45 0.014 65);
+}
+
+/* Hide scrollbar utility class */
+.no-scrollbar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -67,7 +99,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Manga reader GPU-accelerated scrolling & virtualization */
+/* Manga reader GPU-accelerated scrolling & virtualization — scrollbar completely invisible */
 .manga-scroll-viewport {
   overflow-y: auto;
   overflow-x: hidden;
@@ -76,6 +108,14 @@ h1, h2, h3, h4, h5, h6 {
   scroll-behavior: smooth;
   transform: translateZ(0);
   will-change: scroll-position;
+  scrollbar-width: none !important; /* Firefox, modern Chrome & Safari */
+  -ms-overflow-style: none !important; /* IE & Edge */
+}
+
+.manga-scroll-viewport::-webkit-scrollbar {
+  display: none !important; /* WebKit / Chromium */
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .manga-strip-page {
