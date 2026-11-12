@@ -1,0 +1,6 @@
+{
+  "name": "KomaDL — Local gallery-dl Archive & Manga Reader",
+  "description": "Local web interface for gallery-dl URL extraction, structured manga archiving, and a built-in fullscreen wide-fit manga reader.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
