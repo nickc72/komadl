@@ -106,24 +106,62 @@ const SAMPLE_PRESETS: SampleFeedPreset[] = [
   },
 ];
 
+let resolvedGalleryDlBin: string | null = null;
+let resolvedPythonBin: string | null = null;
 let cachedGalleryDlVersion: string | null = null;
 let cachedPythonVersion: string | null = null;
 let binaryChecked = false;
 
 async function detectBinaries(): Promise<void> {
-  if (binaryChecked) return;
+  if (binaryChecked && resolvedGalleryDlBin) return;
   binaryChecked = true;
-  try {
-    const { stdout } = await execFileAsync('gallery-dl', ['--version'], { timeout: 2500 });
-    cachedGalleryDlVersion = stdout.trim() || 'installed';
-  } catch {
-    cachedGalleryDlVersion = null;
+
+  const userProfile = process.env.USERPROFILE || '';
+  const candidateBins = [
+    process.env.GALLERY_DL_BIN,
+    path.resolve(__dirname, '..', 'Py_project', '.venv', 'Scripts', 'gallery-dl.exe'),
+    path.resolve(userProfile, 'OneDrive', 'Desktop', 'Nikhil', 'Py_project', '.venv', 'Scripts', 'gallery-dl.exe'),
+    path.resolve(__dirname, '.venv', 'Scripts', 'gallery-dl.exe'),
+    'gallery-dl',
+    'gallery-dl.exe',
+  ].filter(Boolean) as string[];
+
+  for (const bin of candidateBins) {
+    try {
+      if ((bin.includes('/') || bin.includes('\\')) && !fs.existsSync(bin)) continue;
+      const { stdout } = await execFileAsync(bin, ['--version'], { timeout: 3000 });
+      if (stdout.trim()) {
+        resolvedGalleryDlBin = bin;
+        cachedGalleryDlVersion = stdout.trim();
+        break;
+      }
+    } catch {
+      // try next
+    }
   }
-  try {
-    const { stdout } = await execFileAsync('python3', ['--version'], { timeout: 2500 });
-    cachedPythonVersion = stdout.trim() || null;
-  } catch {
-    cachedPythonVersion = null;
+
+  const candidatePy = [
+    process.env.PYTHON_BIN,
+    path.resolve(__dirname, '..', 'Py_project', '.venv', 'Scripts', 'python.exe'),
+    path.resolve(userProfile, 'OneDrive', 'Desktop', 'Nikhil', 'Py_project', '.venv', 'Scripts', 'python.exe'),
+    path.resolve(__dirname, '.venv', 'Scripts', 'python.exe'),
+    'python',
+    'python3',
+    'python.exe',
+  ].filter(Boolean) as string[];
+
+  for (const bin of candidatePy) {
+    try {
+      if ((bin.includes('/') || bin.includes('\\')) && !fs.existsSync(bin)) continue;
+      const { stdout } = await execFileAsync(bin, ['--version'], { timeout: 3000 });
+      if (stdout.trim()) {
+        resolvedPythonBin = bin;
+        cachedPythonVersion = stdout.trim();
+        break;
+      }
+    } catch {
+      // try next
+    }
   }
 }
 
@@ -318,52 +356,7 @@ function buildSeededState(): PersistedState {
   const tidalTotal = tidalPages.reduce((acc, p) => acc + p.bytes, 0);
 
   const chapters: MangaChapter[] = [
-    {
-      id: 'ch-iron-rail-014',
-      seriesId: 'iron-rail-nocturne',
-      seriesTitle: 'Iron Rail Nocturne',
-      chapterNumber: 14,
-      chapterTitle: 'Viaduct Crossing at 02:40',
-      extractor: 'mangadex',
-      sourceUrl: 'https://mangadex.org/chapter/8f3a19b0-1400-4d1c-9b2a-ironrail0014',
-      directoryPath: `./downloads/${ironDirRel}`,
-      downloadedAt: '2026-11-11T21:14:00.000Z',
-      pageCount: ironPages.length,
-      totalBytes: ironTotal,
-      readPage: 2,
-      pages: ironPages,
-    },
-    {
-      id: 'ch-glass-conservatory-008',
-      seriesId: 'the-glass-conservatory',
-      seriesTitle: 'The Glass Conservatory',
-      chapterNumber: 8,
-      chapterTitle: 'Fern Gallery Ironwork',
-      extractor: 'mangadex',
-      sourceUrl: 'https://mangadex.org/chapter/4c9e02d1-0800-4a8b-8f11-glasscon0008',
-      directoryPath: `./downloads/${glassDirRel}`,
-      downloadedAt: '2026-11-10T18:42:00.000Z',
-      pageCount: glassPages.length,
-      totalBytes: glassTotal,
-      readPage: 0,
-      pages: glassPages,
-    },
-    {
-      id: 'ch-tidal-cartographer-022',
-      seriesId: 'tidal-cartographer',
-      seriesTitle: 'Tidal Cartographer',
-      chapterNumber: 22,
-      chapterTitle: 'Basalt Stacks & Astrolabe',
-      extractor: 'danbooru',
-      sourceUrl: 'https://danbooru.donmai.us/pools/22048',
-      directoryPath: `./downloads/${tidalDirRel}`,
-      downloadedAt: '2026-11-09T11:05:00.000Z',
-      pageCount: tidalPages.length,
-      totalBytes: tidalTotal,
-      readPage: 4,
-      pages: tidalPages,
-    },
-  ];
+    {\n      id: 'ch-iron-rail-014',\n      seriesId: 'iron-rail-nocturne',\n      seriesTitle: 'Iron Rail Nocturne',\n      chapterNumber: 14,\n      chapterTitle: 'Viaduct Crossing at 02:40',\n      extractor: 'mangadex',\n      sourceUrl: 'https://mangadex.org/chapter/8f3a19b0-1400-4d1c-9b2a-ironrail0014',\n      directoryPath: `./downloads/${ironDirRel}`,\n      downloadedAt: '2026-11-11T21:14:00.000Z',\n      pageCount: ironPages.length,\n      totalBytes: ironTotal,\n      readPage: 2,\n      pages: ironPages,\n    },\n    {\n      id: 'ch-glass-conservatory-008',\n      seriesId: 'the-glass-conservatory',\n      seriesTitle: 'The Glass Conservatory',\n      chapterNumber: 8,\n      chapterTitle: 'Fern Gallery Ironwork',\n      extractor: 'mangadex',\n      sourceUrl: 'https://mangadex.org/chapter/4c9e02d1-0800-4a8b-8f11-glasscon0008',\n      directoryPath: `./downloads/${glassDirRel}`,\n      downloadedAt: '2026-11-10T18:42:00.000Z',\n      pageCount: glassPages.length,\n      totalBytes: glassTotal,\n      readPage: 0,\n      pages: glassPages,\n    },\n    {\n      id: 'ch-tidal-cartographer-022',\n      seriesId: 'tidal-cartographer',\n      seriesTitle: 'Tidal Cartographer',\n      chapterNumber: 22,\n      chapterTitle: 'Basalt Stacks & Astrolabe',\n      extractor: 'danbooru',\n      sourceUrl: 'https://danbooru.donmai.us/pools/22048',\n      directoryPath: `./downloads/${tidalDirRel}`,\n      downloadedAt: '2026-11-09T11:05:00.000Z',\n      pageCount: tidalPages.length,\n      totalBytes: tidalTotal,\n      readPage: 4,\n      pages: tidalPages,\n    },\n  ];
 
   const jobs: DownloadJob[] = [
     {
@@ -457,9 +450,175 @@ function loadState(): PersistedState {
 
 let appState: PersistedState = loadState();
 
-function computeSeriesList(state: PersistedState): MangaSeries[] {
-  const grouped = new Map<string, MangaChapter[]>();
+const KNOWN_EXTRACTORS = new Set([
+  'hitomi',
+  'danbooru',
+  'gelbooru',
+  'e-hentai',
+  'exhentai',
+  'nhentai',
+  'pixiv',
+  'twitter',
+  'reddit',
+  'imgur',
+  'deviantart',
+  'artstation',
+  'yandere',
+  'konachan',
+  'booru',
+  'mangadex',
+  'downloads',
+  'gallery-dl',
+  'local-import',
+]);
+
+const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif', '.bmp', '.svg']);
+
+function naturalSort(a: string, b: string): number {
+  return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+}
+
+function findImageDirs(dir: string): string[] {
+  let list: string[] = [];
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    let hasImages = false;
+    for (const e of entries) {
+      if (e.isFile() && IMAGE_EXTS.has(path.extname(e.name).toLowerCase())) {
+        hasImages = true;
+      }
+    }
+    if (hasImages) list.push(dir);
+    for (const e of entries) {
+      if (e.isDirectory() && e.name !== 'node_modules' && e.name !== '.git' && !e.name.startsWith('.')) {
+        list = list.concat(findImageDirs(path.join(dir, e.name)));
+      }
+    }
+  } catch {}
+  return list;
+}
+
+function scanLibraryFromDisk(state: PersistedState): MangaSeries[] {
+  ensureDownloadsDir();
+  const imageDirs = findImageDirs(DOWNLOADS_ROOT);
+  const existingChaptersById = new Map<string, MangaChapter>();
   for (const ch of state.chapters) {
+    existingChaptersById.set(ch.id, ch);
+  }
+
+  const discoveredChapters: MangaChapter[] = [];
+
+  for (const dir of imageDirs) {
+    const files = fs
+      .readdirSync(dir)
+      .filter((f) => IMAGE_EXTS.has(path.extname(f).toLowerCase()))
+      .sort(naturalSort);
+
+    if (files.length === 0) continue;
+
+    const relChapter = path.relative(DOWNLOADS_ROOT, dir).replace(/\\/g, '/');
+    const parts = relChapter.split('/').filter(Boolean);
+
+    // Look for sidecar metadata
+    let sidecarMeta: any = null;
+    const candidates = [
+      path.join(dir, 'info.json'),
+      path.join(dir, 'metadata.json'),
+      path.join(path.dirname(dir), 'info.json'),
+      path.join(path.dirname(dir), 'metadata.json'),
+    ];
+    for (const cp of candidates) {
+      if (fs.existsSync(cp)) {
+        try {
+          sidecarMeta = JSON.parse(fs.readFileSync(cp, 'utf8'));
+          break;
+        } catch {}
+      }
+    }
+
+    let seriesTitle = '';
+    let chapterTitle = '';
+    let chapterNumber = 1;
+    let extractor = 'gallery-dl';
+
+    if (parts.length === 1) {
+      seriesTitle = sidecarMeta?.title || sidecarMeta?.manga || parts[0];
+      chapterTitle = 'Complete Gallery';
+      chapterNumber = 1;
+    } else {
+      const folder = parts[parts.length - 1];
+      const parent = parts[parts.length - 2];
+
+      if (parts[0] && KNOWN_EXTRACTORS.has(parts[0].toLowerCase())) {
+        extractor = parts[0].toLowerCase();
+      }
+
+      if (KNOWN_EXTRACTORS.has(parent.toLowerCase())) {
+        // e.g. hitomi/4324575 Kit Bodega
+        seriesTitle = sidecarMeta?.title || folder.replace(/^\d+\s+/, '') || folder;
+        chapterTitle = 'Gallery';
+        chapterNumber = 1;
+      } else {
+        // e.g. mangadex/Iron Rail Nocturne/c015 or COSMOS/c010
+        seriesTitle = sidecarMeta?.manga || parent;
+        chapterTitle = sidecarMeta?.title || folder;
+        const numMatch = /c?(\d+)/i.exec(folder);
+        chapterNumber = sidecarMeta?.chapter ? Number(sidecarMeta.chapter) || 1 : numMatch ? Number(numMatch[1]) : 1;
+      }
+    }
+
+    const seriesId = slugifyId(seriesTitle);
+    const chapterId = `ch-${seriesId}-${String(chapterNumber).padStart(3, '0')}`;
+
+    let totalBytes = 0;
+    const pages: MangaPage[] = files.map((file, idx) => {
+      const fullPath = path.join(dir, file);
+      const stat = fs.statSync(fullPath);
+      totalBytes += stat.size;
+      const relFile = path.relative(DOWNLOADS_ROOT, fullPath).replace(/\\/g, '/');
+      return {
+        index: idx + 1,
+        filename: file,
+        url: `/downloads/${encodeURI(relFile)}`,
+        bytes: stat.size,
+      };
+    });
+
+    const existing = existingChaptersById.get(chapterId) || state.chapters.find((c) => c.directoryPath === `./downloads/${relChapter}`);
+
+    discoveredChapters.push({
+      id: chapterId,
+      seriesId,
+      seriesTitle,
+      chapterNumber,
+      chapterTitle,
+      extractor: sidecarMeta?.category || extractor,
+      sourceUrl: sidecarMeta?.source_url || sidecarMeta?.url || existing?.sourceUrl || '',
+      directoryPath: `./downloads/${relChapter}`,
+      downloadedAt: existing?.downloadedAt || new Date().toISOString(),
+      pageCount: pages.length,
+      totalBytes,
+      readPage: existing?.readPage || 0,
+      pages,
+    });
+
+    if (!state.seriesMeta[seriesId]) {
+      state.seriesMeta[seriesId] = {
+        id: seriesId,
+        title: seriesTitle,
+        author: sidecarMeta?.artist?.[0] || sidecarMeta?.author || 'Local Archive',
+        extractor: sidecarMeta?.category || extractor,
+        tags: sidecarMeta?.tags || [extractor],
+        coverChapterId: chapterId,
+      };
+    }
+  }
+
+  state.chapters = discoveredChapters;
+  saveState(state);
+
+  const grouped = new Map<string, MangaChapter[]>();
+  for (const ch of discoveredChapters) {
     const list = grouped.get(ch.seriesId) || [];
     list.push(ch);
     grouped.set(ch.seriesId, list);
@@ -494,6 +653,10 @@ function computeSeriesList(state: PersistedState): MangaSeries[] {
   }
 
   return seriesList.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+}
+
+function computeSeriesList(state: PersistedState): MangaSeries[] {
+  return scanLibraryFromDisk(state);
 }
 
 function computeEngineInfo(state: PersistedState): EngineInfo {
@@ -807,36 +970,74 @@ async function executeDownloadJob(
     await detectBinaries();
     const isLocalFeed = job.url.includes('/api/sample-feed/');
 
-    if (cachedGalleryDlVersion && !isLocalFeed) {
-      const seriesName = sanitizeSegment(options.seriesOverride || 'Gallery Archive');
-      const chapterNum = options.chapterOverride || 1;
-      const relDir = `gallery-dl/${seriesName}/c${String(chapterNum).padStart(3, '0')}`;
-      const absDir = path.join(DOWNLOADS_ROOT, relDir);
-      fs.mkdirSync(absDir, { recursive: true });
+    if (resolvedGalleryDlBin && !isLocalFeed) {
+      let targetDir = DOWNLOADS_ROOT;
+      if (options.seriesOverride && options.seriesOverride.trim()) {
+        targetDir = path.join(DOWNLOADS_ROOT, sanitizeSegment(options.seriesOverride.trim()));
+        fs.mkdirSync(targetDir, { recursive: true });
+      }
 
-      appendLog(`[gallery-dl][info] Spawning gallery-dl ${cachedGalleryDlVersion}`);
-      const args = ['-d', absDir, '-f', '{num:03d}.{extension}'];
+      appendLog(`[gallery-dl][info] Executing: ${resolvedGalleryDlBin}`);
+
+      const args: string[] = [
+        '--windows-filenames',
+        '--no-colors',
+        '--destination', targetDir,
+      ];
+
       if (options.pageRange?.trim()) {
         args.push('--range', options.pageRange.trim());
       }
       if (appState.config.sleepRequest > 0) {
         args.push('--sleep-request', String(appState.config.sleepRequest));
       }
+      if (appState.config.retries > 0) {
+        args.push('--retries', String(appState.config.retries));
+      }
       if (appState.config.writeMetadata) {
-        args.push('--write-metadata');
+        args.push('--write-info-json');
+      }
+      if (appState.config.proxyUrl?.trim()) {
+        args.push('--proxy', appState.config.proxyUrl.trim());
+      }
+      if (appState.config.cookiesPath?.trim()) {
+        args.push('--cookies', appState.config.cookiesPath.trim());
+      }
+      if (options.extraArgs?.trim()) {
+        const regex = /[^\s"']+|"([^"]*)"|'([^']*)'/g;
+        let match;
+        while ((match = regex.exec(options.extraArgs.trim())) !== null) {
+          args.push(match[1] || match[2] || match[0]);
+        }
       }
       args.push(job.url);
 
+      appendLog(`[gallery-dl][info] Args: ${args.join(' ')}`);
+
       await new Promise<void>((resolve, reject) => {
-        const child = spawn('gallery-dl', args);
+        const child = spawn(resolvedGalleryDlBin!, args);
         child.stdout.on('data', (chunk: Buffer) => {
-          for (const line of chunk.toString('utf8').split(/\r?\n/).filter(Boolean)) {
+          const text = chunk.toString('utf8');
+          for (const rawLine of text.split(/\r?\n/)) {
+            const line = rawLine.trim();
+            if (!line) continue;
             appendLog(line);
-            job.downloadedPages += 1;
+
+            if (/\.(jpe?g|png|webp|gif|avif|bmp|cbz|zip)$/i.test(line)) {
+              job.downloadedPages += 1;
+              const match = /\[(\d+)\/(\d+)\]/.exec(line);
+              if (match) {
+                job.downloadedPages = Number(match[1]);
+                job.totalPages = Number(match[2]);
+              }
+            }
           }
         });
         child.stderr.on('data', (chunk: Buffer) => {
-          for (const line of chunk.toString('utf8').split(/\r?\n/).filter(Boolean)) {
+          const text = chunk.toString('utf8');
+          for (const rawLine of text.split(/\r?\n/)) {
+            const line = rawLine.trim();
+            if (!line) continue;
             appendLog(line);
           }
         });
@@ -847,69 +1048,21 @@ async function executeDownloadJob(
         });
       });
 
-      const imageFiles = fs
-        .readdirSync(absDir, { recursive: true })
-        .map((f) => String(f))
-        .filter((f) => /\.(jpe?g|png|webp|gif|svg|avif)$/i.test(f))
-        .sort();
-
-      if (imageFiles.length === 0) {
-        throw new Error('gallery-dl finished but wrote 0 image files for this URL.');
+      // Synchronize library from disk!
+      scanLibraryFromDisk(appState);
+      if (job.totalPages === 0 || job.downloadedPages > job.totalPages) {
+        job.totalPages = job.downloadedPages;
       }
-
-      const pages: MangaPage[] = imageFiles.map((relFile, i) => {
-        const full = path.join(absDir, relFile);
-        const stat = fs.statSync(full);
-        return {
-          index: i + 1,
-          filename: relFile,
-          url: `/downloads/${encodeURI(relDir)}/${encodeURI(relFile)}`,
-          bytes: stat.size,
-        };
-      });
-
-      const totalBytes = pages.reduce((s, p) => s + p.bytes, 0);
-      const seriesId = slugifyId(seriesName);
-      const chapterId = `ch-${seriesId}-${String(chapterNum).padStart(3, '0')}-${Date.now().toString(36)}`;
-
-      const newChapter: MangaChapter = {
-        id: chapterId,
-        seriesId,
-        seriesTitle: seriesName,
-        chapterNumber: chapterNum,
-        chapterTitle: `Chapter ${chapterNum}`,
-        extractor: job.extractor,
-        sourceUrl: job.url,
-        directoryPath: `./downloads/${relDir}`,
-        downloadedAt: new Date().toISOString(),
-        pageCount: pages.length,
-        totalBytes,
-        readPage: 0,
-        pages,
-      };
-
-      appState.chapters.unshift(newChapter);
-      if (!appState.seriesMeta[seriesId]) {
-        appState.seriesMeta[seriesId] = {
-          id: seriesId,
-          title: seriesName,
-          author: 'Extracted via gallery-dl',
-          extractor: job.extractor,
-          tags: [job.extractor],
-          coverChapterId: chapterId,
-        };
-      }
-
-      job.seriesTitle = seriesName;
-      job.chapterNumber = chapterNum;
-      job.totalPages = pages.length;
-      job.downloadedPages = pages.length;
-      job.bytesDownloaded = totalBytes;
-      job.outputChapterId = chapterId;
       job.status = 'completed';
       job.completedAt = new Date().toISOString();
       saveState(appState);
       return;
+    }
+
+    if (!isLocalFeed && !resolvedGalleryDlBin) {
+      throw new Error(
+        'gallery-dl binary not found. Please install gallery-dl or set GALLERY_DL_BIN environment variable.'
+      );
     }
 
     const extracted = await extractUrlsViaHttp(job.url, appState.config.userAgent, appendLog);
