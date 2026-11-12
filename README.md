@@ -1,0 +1,1 @@
+# KomaDL — Local gallery-dl Archive & Wide Manga Reader
