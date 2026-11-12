@@ -404,7 +404,7 @@ const MangaReaderComponent: React.FC<MangaReaderProps> = ({
               handleMouseMove();
             }}
             aria-label="Show reader controls"
-            className="min-h-10 px-3 text-caption bg-surface/90 backdrop-blur-md shadow-md"
+            className="min-h-10 px-3 text-caption bg-surface/90 text-foreground backdrop-blur-md shadow-md"
           >
             <Eye className="h-4 w-4" />
             Controls [H]
@@ -416,19 +416,27 @@ const MangaReaderComponent: React.FC<MangaReaderProps> = ({
               handleMouseMove();
             }}
             aria-label="Toggle wide screen fit"
-            className="min-h-10 px-3 text-caption bg-surface/90 backdrop-blur-md shadow-md"
+            className={`min-h-10 px-3 text-caption backdrop-blur-md shadow-md ${
+              preferences.fitMode === 'wide'
+                ? '!bg-primary !text-primary-foreground font-semibold shadow-primary/20'
+                : 'bg-surface/90 text-foreground'
+            }`}
           >
             <MoveHorizontal className="h-4 w-4" />
             Wide [W]
           </Button>
           <Button
-            tone="quiet"
+            tone={isFullscreenActive ? 'primary' : 'quiet'}
             onClick={() => {
               void toggleFullscreen();
               handleMouseMove();
             }}
             aria-label={isFullscreenActive ? 'Exit fullscreen' : 'Enter fullscreen'}
-            className="min-h-10 px-3 text-caption bg-surface/90 backdrop-blur-md shadow-md"
+            className={`min-h-10 px-3 text-caption backdrop-blur-md shadow-md ${
+              isFullscreenActive
+                ? '!bg-primary !text-primary-foreground font-semibold shadow-primary/20'
+                : 'bg-surface/90 text-foreground'
+            }`}
           >
             {isFullscreenActive ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           </Button>
