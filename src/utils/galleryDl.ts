@@ -72,12 +72,15 @@ export function detectExtractorFromUrl(rawUrl: string): string {
 }
 
 export function buildGalleryDlCommand(input: CommandBuildInput): string {
-  const parts: string[] = ['gallery-dl'];
-  parts.push('-d', shellQuote(input.config.baseDirectory || './downloads'));
+  const parts: string[] = ['gallery-dl', '--windows-filenames', '--no-colors'];
 
-  if (input.config.directoryTemplate && input.config.filenameTemplate) {
-    parts.push('-f', shellQuote(input.config.filenameTemplate));
+  if (input.seriesOverride && input.seriesOverride.trim()) {
+    const dest = `./downloads/${sanitizeSegment(input.seriesOverride.trim())}`;
+    parts.push('--destination', shellQuote(dest));
+  } else {
+    parts.push('--destination', shellQuote(input.config.baseDirectory || './downloads'));
   }
+
   if (input.pageRange && input.pageRange.trim()) {
     parts.push('--range', shellQuote(input.pageRange.trim()));
   }
@@ -88,15 +91,15 @@ export function buildGalleryDlCommand(input: CommandBuildInput): string {
     parts.push('--retries', String(input.config.retries));
   }
   if (input.config.writeMetadata) {
-    parts.push('--write-metadata');
+    parts.push('--write-info-json');
   }
   if (input.config.ugoiraConvert) {
     parts.push('--ugoira-conv');
   }
-  if (input.config.proxyUrl.trim()) {
+  if (input.config.proxyUrl?.trim()) {
     parts.push('--proxy', shellQuote(input.config.proxyUrl.trim()));
   }
-  if (input.config.cookiesPath.trim()) {
+  if (input.config.cookiesPath?.trim()) {
     parts.push('--cookies', shellQuote(input.config.cookiesPath.trim()));
   }
   if (input.extraArgs && input.extraArgs.trim()) {
@@ -109,7 +112,7 @@ export function buildGalleryDlCommand(input: CommandBuildInput): string {
     .filter(Boolean);
 
   if (urls.length === 0) {
-    parts.push("'https://mangadex.org/chapter/...'");
+    parts.push("'https://hitomi.la/...'");
   } else {
     for (const u of urls) {
       parts.push(shellQuote(u));
