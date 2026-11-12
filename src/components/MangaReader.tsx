@@ -52,7 +52,32 @@ const MangaReaderComponent: React.FC<MangaReaderProps> = ({
   const [isNativeFullscreen, setIsNativeFullscreen] = useState<boolean>(false);
   const [isImmersiveLock, setIsImmersiveLock] = useState<boolean>(false);
   const [hudVisible, setHudVisible] = useState<boolean>(true);
+  const [isMouseActive, setIsMouseActive] = useState<boolean>(true);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pointerStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+
+  const handleMouseMove = useCallback(() => {
+    setIsMouseActive(true);
+    if (idleTimerRef.current) {
+      clearTimeout(idleTimerRef.current);
+    }
+    idleTimerRef.current = setTimeout(() => {
+      setIsMouseActive(false);
+    }, 2500);
+  }, []);
+
+  useEffect(() => {
+    if (idleTimerRef.current) {
+      clearTimeout(idleTimerRef.current);
+    }
+    idleTimerRef.current = setTimeout(() => {
+      setIsMouseActive(false);
+    }, 2500);
+
+    return () => {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const start =
@@ -108,6 +133,14 @@ const MangaReaderComponent: React.FC<MangaReaderProps> = ({
       if (rafId) cancelAnimationFrame(rafId);
     };
   }, [preferences.layoutMode, chapter.id, chapter.pageCount]);
+
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
 
   useEffect(() => {
     const handleFsChange = () => {
@@ -204,6 +237,7 @@ const MangaReaderComponent: React.FC<MangaReaderProps> = ({
       } else if (e.key === 'h' || e.key === 'H') {
         e.preventDefault();
         setHudVisible((v) => !v);
+        handleMouseMove();
       } else if (e.key === 'm' || e.key === 'M') {
         e.preventDefault();
         onUpdatePreferences({
@@ -251,6 +285,7 @@ const MangaReaderComponent: React.FC<MangaReaderProps> = ({
   }, [
     goNext,
     goPrev,
+    handleMouseMove,
     isImmersiveLock,
     onClose,
     onUpdatePreferences,
@@ -320,11 +355,6 @@ const MangaReaderComponent: React.FC<MangaReaderProps> = ({
     }
 
     const rect = e.currentTarget.getBoundingClientRect();
-    // Ignore clicks on scrollbar gutter (within 24px of right edge on Windows)
-    if (e.clientX >= rect.right - 24) {
-      return;
-    }
-
     const relX = (e.clientX - rect.left) / rect.width;
     if (relX < 0.32) {
       if (preferences.direction === 'rtl') goNext();
@@ -352,34 +382,53 @@ const MangaReaderComponent: React.FC<MangaReaderProps> = ({
   return (
     <div
       ref={stageRef}
-      className={`fixed inset-0 z-50 flex h-dvh w-screen flex-col ${bgClass} text-foreground`}
+      onMouseMove={handleMouseMove}
+      onTouchStart={handleMouseMove}
+      className={`fixed inset-0 z-50 flex h-dvh w-full flex-col ${bgClass} text-foreground overflow-hidden no-scrollbar ${
+        !hudVisible && !isMouseActive ? 'cursor-none' : ''
+      }`}
     >
       {/* Floating minimal restore button when HUD is hidden for 100% pure screen coverage */}
       {!hudVisible ? (
-        <div className=" fixed right-4 top-4 z-30 flex items-center gap-2">
+        <div
+          className={`fixed right-4 top-4 z-30 flex items-center gap-2 transition-all duration-300 ease-out ${
+            isMouseActive
+              ? 'opacity-100 translate-y-0 pointer-events-auto'
+              : 'opacity-0 -translate-y-2 pointer-events-none'
+          }`}
+        >
           <Button
             tone="quiet"
-            onClick={() => setHudVisible(true)}
+            onClick={() => {
+              setHudVisible(true);
+              handleMouseMove();
+            }}
             aria-label="Show reader controls"
-            className="min-h-10 px-3 text-caption"
+            className="min-h-10 px-3 text-caption bg-surface/90 backdrop-blur-md shadow-md"
           >
             <Eye className="h-4 w-4" />
             Controls [H]
           </Button>
           <Button
             tone={preferences.fitMode === 'wide' ? 'primary' : 'quiet'}
-            onClick={toggleWideMode}
+            onClick={() => {
+              toggleWideMode();
+              handleMouseMove();
+            }}
             aria-label="Toggle wide screen fit"
-            className="min-h-10 px-3 text-caption"
+            className="min-h-10 px-3 text-caption bg-surface/90 backdrop-blur-md shadow-md"
           >
             <MoveHorizontal className="h-4 w-4" />
             Wide [W]
           </Button>
           <Button
             tone="quiet"
-            onClick={() => void toggleFullscreen()}
+            onClick={() => {
+              void toggleFullscreen();
+              handleMouseMove();
+            }}
             aria-label={isFullscreenActive ? 'Exit fullscreen' : 'Enter fullscreen'}
-            className="min-h-10 px-3 text-caption"
+            className="min-h-10 px-3 text-caption bg-surface/90 backdrop-blur-md shadow-md"
           >
             {isFullscreenActive ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           </Button>
@@ -569,8 +618,12 @@ const MangaReaderComponent: React.FC<MangaReaderProps> = ({
         ref={scrollViewportRef}
         onPointerDown={handlePointerDown}
         onClick={handleStageZoneClick}
-        className={`manga-scroll-viewport relative min-h-0 flex-1 ${
-          preferences.layoutMode !== 'strip' ? 'cursor-pointer' : ''
+        className={`manga-scroll-viewport no-scrollbar relative min-h-0 flex-1 ${
+          !hudVisible && !isMouseActive
+            ? 'cursor-none'
+            : preferences.layoutMode !== 'strip'
+              ? 'cursor-pointer'
+              : ''
         }`}
       >
         {preferences.layoutMode === 'strip' ? (
